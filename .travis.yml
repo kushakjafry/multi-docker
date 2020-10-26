@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t kushakjafry/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true kushakjafry/react-test npm test
+
+after_success:
+  - docker build -t kushakjafry/multi-client ./client
+  - docker build -t kushakjafry/multi-nginx ./nginx
+  - docker build -t kushakjafry/multi-server ./server
+  - docker build -t kushakjafry/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push kushakjafry/multi-client
+  - docker push kushakjafry/multi-nginx
+  - docker push kushakjafry/multi-server
+  - docker push kushakjafry/multi-worker
